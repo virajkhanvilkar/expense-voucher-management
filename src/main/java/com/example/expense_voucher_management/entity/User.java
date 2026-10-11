@@ -1,5 +1,5 @@
-package com.example.expense_voucher_management.entity;
 
+package com.example.expense_voucher_management.entity;
 
 import com.example.expense_voucher_management.enums.*;
 import jakarta.persistence.*;
@@ -21,6 +21,9 @@ public class User {
 
     @Column(nullable = false)
     private String passwordHash;
+
+    @Column(length = 254, unique = true)
+    private String email;
 
     @Column(length = 50)
     private String employeeCode;
@@ -73,6 +76,14 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getEmployeeCode() {

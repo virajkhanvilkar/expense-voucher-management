@@ -1,3 +1,4 @@
+
 package com.example.expense_voucher_management.controller;
 
 import com.example.expense_voucher_management.entity.Voucher;
@@ -20,33 +21,38 @@ public class DirectorController {
         this.directorService = directorService;
     }
 
-    // Get all pending vouchers
+    // Get all pending vouchers.
     @GetMapping("/pending")
     public ResponseEntity<List<Voucher>> getPendingVouchers() {
         return ResponseEntity.ok(
-                directorService.getPendingVouchers()
-        );
+                directorService.getPendingVouchers());
     }
 
-    // Approve a voucher
+    // Get all processed vouchers: APPROVED and REJECTED.
+    @GetMapping("/processed")
+    public ResponseEntity<List<Voucher>> getProcessedVouchers() {
+        return ResponseEntity.ok(
+                directorService.getProcessedVouchers());
+    }
+
+    // Approve a voucher.
     @PostMapping("/approve/{directorId}/{voucherId}")
     public ResponseEntity<Voucher> approveVoucher(
             @PathVariable("directorId") Long directorId,
             @PathVariable("voucherId") Long voucherId,
             @RequestBody Map<String, String> request) {
 
-        String signaturePath = request.get("directorSignaturePath");
+        String signaturePath =
+                request.get("directorSignaturePath");
 
         return ResponseEntity.ok(
                 directorService.approveVoucher(
                         directorId,
                         voucherId,
-                        signaturePath
-                )
-        );
+                        signaturePath));
     }
 
-    // Reject a voucher
+    // Reject a voucher.
     @PostMapping("/reject/{directorId}/{voucherId}")
     public ResponseEntity<Voucher> rejectVoucher(
             @PathVariable("directorId") Long directorId,
@@ -59,8 +65,6 @@ public class DirectorController {
                 directorService.rejectVoucher(
                         directorId,
                         voucherId,
-                        reason
-                )
-        );
+                        reason));
     }
 }

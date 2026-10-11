@@ -247,3 +247,326 @@
   .evm-footer { flex-direction: column; line-height: 1.5; }
   .evm-draft-label { display: none; }
 }
+
+
+/* ===== ACCOUNTS SIDEBAR CONSISTENCY FIX ===== */
+
+.evm-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: clip;
+  align-items: stretch;
+}
+
+/* Sidebar stays full-sized and visible */
+.evm-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+
+  width: 250px;
+  min-width: 250px;
+  flex: 0 0 250px;
+
+  height: 100vh;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 28px 17px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Preserve the complete brand */
+.evm-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+}
+
+.evm-brand > div:last-child {
+  display: block;
+}
+
+.evm-sidebar-label {
+  display: block;
+}
+
+/* Keep navigation labels visible */
+.evm-nav button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  font-size: 13px;
+  text-align: left;
+}
+
+.evm-nav-icon {
+  flex: 0 0 18px;
+  font-size: 18px;
+}
+
+.evm-nav-count {
+  display: block;
+  margin-left: auto;
+}
+
+.evm-help-card {
+  display: block;
+}
+
+.evm-sidebar-bottom {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.evm-logout {
+  justify-content: flex-start;
+  font-size: 13px;
+}
+
+.evm-logout span {
+  font-size: 18px;
+}
+
+/* Main content fills the remaining space */
+.evm-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: calc(100% - 250px);
+}
+
+/* Responsive content without collapsing the sidebar */
+@media (max-width: 1200px) {
+  .evm-sidebar {
+    width: 220px;
+    min-width: 220px;
+    flex-basis: 220px;
+  }
+
+  .evm-main {
+    width: calc(100% - 220px);
+  }
+}
+
+@media (max-width: 900px) {
+  .evm-sidebar {
+    width: 200px;
+    min-width: 200px;
+    flex-basis: 200px;
+    padding: 20px 10px;
+  }
+
+  .evm-brand {
+    padding: 0 5px 30px;
+  }
+
+  .evm-brand > div:last-child,
+  .evm-sidebar-label {
+    display: block;
+  }
+
+  .evm-nav button {
+    justify-content: flex-start;
+    font-size: 13px;
+    padding: 12px 9px;
+  }
+
+  .evm-nav-count {
+    display: block;
+  }
+
+  .evm-help-card {
+    display: block;
+  }
+
+  .evm-logout {
+    justify-content: flex-start;
+    font-size: 13px;
+  }
+
+  .evm-main {
+    width: calc(100% - 200px);
+  }
+}
+
+@media (max-width: 620px) {
+  .evm-sidebar {
+    width: 165px;
+    min-width: 165px;
+    flex-basis: 165px;
+    padding: 16px 8px;
+  }
+
+  .evm-brand {
+    gap: 7px;
+    padding: 0 2px 22px;
+  }
+
+  .evm-brand-mark {
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
+  }
+
+  .evm-brand strong {
+    font-size: 12px;
+  }
+
+  .evm-brand span {
+    font-size: 9px;
+  }
+
+  .evm-nav button {
+    gap: 7px;
+    padding: 11px 6px;
+    font-size: 11px;
+  }
+
+  .evm-nav-icon {
+    flex-basis: 16px;
+    font-size: 16px;
+  }
+
+  .evm-help-card {
+    padding: 12px 8px;
+  }
+
+  .evm-main {
+    width: calc(100% - 165px);
+  }
+
+  .evm-topbar {
+    padding: 0 12px;
+  }
+
+  .evm-content {
+    padding: 20px 10px;
+  }
+}
+
+/* Fix Accounts sidebar disappearing content */
+.evm-sidebar {
+  position: sticky;
+  top: 0;
+  flex: 0 0 250px;
+  width: 250px;
+  min-width: 250px;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 17px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #173b66;
+  color: #fff;
+}
+
+.evm-sidebar .evm-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 8px 35px;
+}
+
+.evm-sidebar .evm-brand > div:last-child {
+  display: block !important;
+}
+
+.evm-sidebar .evm-brand strong,
+.evm-sidebar .evm-brand span {
+  display: block !important;
+  color: #fff;
+}
+
+.evm-sidebar .evm-sidebar-label {
+  display: block !important;
+  color: #b9cce4;
+}
+
+.evm-sidebar .evm-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.evm-sidebar .evm-nav button {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 13px;
+  color: #fff;
+  font-size: 13px !important;
+  text-align: left;
+}
+
+.evm-sidebar .evm-nav button > span:not(.evm-nav-icon) {
+  display: inline !important;
+}
+
+.evm-sidebar .evm-nav-icon {
+  display: inline-block !important;
+  flex: 0 0 18px;
+  font-size: 18px;
+}
+
+.evm-sidebar .evm-nav button.active {
+  background: #35577f;
+  color: #fff;
+}
+
+.evm-sidebar .evm-sidebar-bottom {
+  display: block;
+  margin-top: auto;
+}
+
+.evm-sidebar .evm-logout {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start !important;
+  color: #fff;
+  font-size: 13px !important;
+}
+
+.evm-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Keep sidebar usable at smaller viewport widths */
+@media (max-width: 900px) {
+  .evm-sidebar {
+    flex-basis: 200px;
+    width: 200px;
+    min-width: 200px;
+    padding: 20px 10px;
+  }
+}
+
+@media (max-width: 620px) {
+  .evm-sidebar {
+    flex-basis: 165px;
+    width: 165px;
+    min-width: 165px;
+    padding: 16px 8px;
+  }
+
+  .evm-sidebar .evm-brand {
+    padding: 0 2px 22px;
+  }
+
+  .evm-sidebar .evm-nav button {
+    gap: 7px;
+    padding: 11px 6px;
+    font-size: 11px !important;
+  }
+}
+

@@ -32,6 +32,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    // Public authentication endpoints do not require an existing JWT.
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+
+        return path.equals("/api/auth/login")
+                || path.equals("/api/auth/register")
+                || path.equals("/api/auth/forgot-password")
+                || path.equals("/api/auth/reset-password");
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -39,22 +50,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        String authorizationHeader =
-                request.getHeader("Authorization");
+        String requestPath = request.getServletPath();
+        String authorizationHeader = request.getHeader("Authorization");
 
-        String requestPath = request.getRequestURI();
-
+        // Requests without a Bearer token continue to authorization rules.
         if (authorizationHeader == null
                 || !authorizationHeader.startsWith("Bearer ")) {
-
-            System.out.println(
-                    "JWT: No Bearer token for " + requestPath);
-
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = authorizationHeader.substring(7);
+        String token = authorizationHeader.substring(7).trim();
+
+        if (token.isEmpty()) {
+            response.sendError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Bearer token is empty");
+            return;
+        }
 
         try {
             String username = jwtService.extractUsername(token);
@@ -66,15 +79,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (SecurityContextHolder.getContext()
-                    .getAuthentication() == null) {
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(username);
 
                 if (!jwtService.isTokenValid(
                         token, userDetails.getUsername())) {
-
                     response.sendError(
                             HttpServletResponse.SC_UNAUTHORIZED,
                             "Invalid or expired JWT token");
@@ -95,10 +106,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .setAuthentication(authentication);
             }
 
+        } catch (UsernameNotFoundException ex) {
+            SecurityContextHolder.clearContext();
+
+            response.sendError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "User associated with token was not found");
+            return;
+
         } catch (JwtException | IllegalArgumentException ex) {
             SecurityContextHolder.clearContext();
 
-            System.out.println(
+            // Never log the actual JWT.
+            System.err.println(
                     "JWT validation failed for " + requestPath
                             + ": " + ex.getClass().getSimpleName());
 
@@ -106,32 +126,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Invalid or expired JWT token");
             return;
-
-        } catch (UsernameNotFoundException ex) {
-            SecurityContextHolder.clearContext();
-
-            System.out.println(
-                    "JWT user not found for " + requestPath);
-
-            response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "User associated with token was not found");
-            return;
         }
 
-        // Temporary debugging: never print the actual JWT.
         Authentication authentication =
                 SecurityContextHolder.getContext().getAuthentication();
 
-        System.out.println("Request path: " + requestPath);
         System.out.println(
-                "Authenticated: " + (authentication != null
-                        && authentication.isAuthenticated()));
-
-        if (authentication != null) {
-            System.out.println(
-                    "Authorities: " + authentication.getAuthorities());
-        }
+                "Request path: " + requestPath
+                        + ", authenticated: "
+                        + (authentication != null
+                                && authentication.isAuthenticated()));
 
         filterChain.doFilter(request, response);
     }

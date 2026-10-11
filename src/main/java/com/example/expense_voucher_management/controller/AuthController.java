@@ -44,27 +44,40 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         try {
+            String username = request.getUsername().trim();
+
+            // Authenticate the submitted credentials.
             Authentication authentication =
                     authenticationManager.authenticate(
                             new UsernamePasswordAuthenticationToken(
-                                    request.getUsername(),
-                                    request.getPassword()));
+                                    username,
+                                    request.getPassword()
+                            )
+                    );
 
+            // Fetch the authenticated user and their database ID.
             User user = userRepository
                     .findByUsername(authentication.getName())
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Authenticated user was not found"));
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Authenticated user was not found"
+                            )
+                    );
 
+            // Generate a JWT containing the username and role.
             String token = jwtService.generateToken(
                     user.getUsername(),
-                    user.getRole().name());
+                    user.getRole().name()
+            );
 
+            // Return the user ID along with the login details.
             LoginResponse response = new LoginResponse(
                     user.getId(),
                     token,
                     user.getUsername(),
                     user.getRole().name(),
-                    "Login successful");
+                    "Login successful"
+            );
 
             return ResponseEntity.ok(response);
 
@@ -74,7 +87,8 @@ public class AuthController {
                     null,
                     null,
                     null,
-                    "Invalid username or password");
+                    "Invalid username or password"
+            );
 
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)

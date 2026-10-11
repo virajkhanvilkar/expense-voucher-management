@@ -1,3 +1,4 @@
+
 package com.example.expense_voucher_management.service;
 
 import com.example.expense_voucher_management.entity.User;
@@ -30,12 +31,25 @@ public class DirectorService {
         this.userRepository = userRepository;
     }
 
+    // Get vouchers awaiting the Director's decision.
     @Transactional(readOnly = true)
     public List<Voucher> getPendingVouchers() {
         return voucherRepository.findByStatus(
                 VoucherStatus.PENDING_APPROVAL);
     }
 
+    // Get vouchers already approved or rejected.
+    @Transactional(readOnly = true)
+    public List<Voucher> getProcessedVouchers() {
+        return voucherRepository.findByStatusIn(
+                List.of(
+                        VoucherStatus.APPROVED,
+                        VoucherStatus.REJECTED
+                )
+        );
+    }
+
+    // Approve a pending voucher.
     @Transactional
     public Voucher approveVoucher(
             Long directorId,
@@ -54,14 +68,17 @@ public class DirectorService {
         VoucherApproval approval = new VoucherApproval();
         approval.setVoucher(voucher);
         approval.setDirector(director);
-        approval.setDirectorSignaturePath(directorSignaturePath);
+        approval.setDirectorSignaturePath(
+                directorSignaturePath.trim());
 
         voucher.setStatus(VoucherStatus.APPROVED);
 
         approvalRepository.save(approval);
+
         return voucherRepository.save(voucher);
     }
 
+    // Reject a pending voucher.
     @Transactional
     public Voucher rejectVoucher(
             Long directorId,
@@ -84,9 +101,11 @@ public class DirectorService {
         voucher.setStatus(VoucherStatus.REJECTED);
 
         approvalRepository.save(approval);
+
         return voucherRepository.save(voucher);
     }
 
+    // Validate that the supplied user is a Director.
     private User getDirector(Long directorId) {
         User director = userRepository.findById(directorId)
                 .orElseThrow(() ->
@@ -100,6 +119,7 @@ public class DirectorService {
         return director;
     }
 
+    // Only pending vouchers can be approved or rejected.
     private Voucher getPendingVoucher(Long voucherId) {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(() ->

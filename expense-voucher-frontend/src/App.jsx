@@ -1,63 +1,116 @@
 import {
   BrowserRouter,
-  Routes,
-  Route,
   Navigate,
+  Route,
+  Routes,
 } from "react-router-dom";
 
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import AccountsDashboard from "./pages/AccountsDashboard";
 import DirectorDashboard from "./pages/DirectorDashboard";
+import Profile from "./pages/Profile";
 
-function ProtectedRoute({ role, children }) {
+function RoleRoute({ allowedRoles, children }) {
   const token = localStorage.getItem("token");
-  const userRole = localStorage.getItem("role");
+  const role = (localStorage.getItem("role") || "").toUpperCase();
 
-  if (!token || userRole !== role) {
+  if (!token) {
     return <Navigate to="/" replace />;
   }
 
+  if (!allowedRoles.includes(role)) {
+    const roleHome = {
+      EMPLOYEE: "/employee",
+      ACCOUNTS: "/accounts",
+      DIRECTOR: "/director",
+    };
+
+    return <Navigate to={roleHome[role] || "/"} replace />;
+  }
+
   return children;
+}
+
+function HomeRoute() {
+  const token = localStorage.getItem("token");
+  const role = (localStorage.getItem("role") || "").toUpperCase();
+
+  if (!token) {
+    return <Login />;
+  }
+
+  const roleHome = {
+    EMPLOYEE: "/employee",
+    ACCOUNTS: "/accounts",
+    DIRECTOR: "/director",
+  };
+
+  return <Navigate to={roleHome[role] || "/"} replace />;
 }
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login />} />
+        {/* Login */}
+        <Route path="/" element={<HomeRoute />} />
 
+        {/* Forgot Password */}
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        {/* Employee Dashboard */}
         <Route
           path="/employee"
           element={
-            <ProtectedRoute role="EMPLOYEE">
+            <RoleRoute allowedRoles={["EMPLOYEE"]}>
               <EmployeeDashboard />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
 
-        <Route
-          path="/director"
-          element={
-            <ProtectedRoute role="DIRECTOR">
-              <DirectorDashboard />
-            </ProtectedRoute>
-          }
-        />
-
+        {/* Accounts Dashboard */}
         <Route
           path="/accounts"
           element={
-            <ProtectedRoute role="ACCOUNTS">
+            <RoleRoute allowedRoles={["ACCOUNTS"]}>
               <AccountsDashboard />
-            </ProtectedRoute>
+            </RoleRoute>
           }
         />
 
+        {/* Director Dashboard */}
         <Route
-          path="*"
-          element={<Navigate to="/" replace />}
+          path="/director"
+          element={
+            <RoleRoute allowedRoles={["DIRECTOR"]}>
+              <DirectorDashboard />
+            </RoleRoute>
+          }
         />
+
+        {/* User Profile */}
+        <Route
+          path="/profile"
+          element={
+            <RoleRoute
+              allowedRoles={[
+                "EMPLOYEE",
+                "ACCOUNTS",
+                "DIRECTOR",
+              ]}
+            >
+              <Profile />
+            </RoleRoute>
+          }
+        />
+
+        {/* Unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

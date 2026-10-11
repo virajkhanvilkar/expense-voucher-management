@@ -45,14 +45,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(
-                List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:5174"
+        ));
 
-        config.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "PATCH",
+                "DELETE", "OPTIONS"
+        ));
 
-        config.setAllowedHeaders(
-                List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Accept"
+        ));
 
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
@@ -70,44 +77,42 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> cors
-                .configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(
+                    corsConfigurationSource()))
 
             .csrf(csrf -> csrf.disable())
 
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .sessionCreationPolicy(
+                            SessionCreationPolicy.STATELESS))
 
             .authorizeHttpRequests(auth -> auth
 
-                // Allow browser CORS preflight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Login and registration endpoints
-                .requestMatchers("/api/auth/**").permitAll()
+                // Public login, registration and password-reset endpoints.
+                .requestMatchers("/api/auth/**", "/error").permitAll()
 
-                // Director-only APIs
-                .requestMatchers("/api/director/**").hasRole("DIRECTOR")
+                .requestMatchers("/api/director/**")
+                        .hasRole("DIRECTOR")
 
-                // Accounts-only APIs
-                .requestMatchers("/api/accounts/**").hasRole("ACCOUNTS")
+                .requestMatchers("/api/accounts/**")
+                        .hasRole("ACCOUNTS")
 
-                // Bill viewing: must be before the general voucher rule
                 .requestMatchers(
-                    HttpMethod.GET,
-                    "/api/vouchers/*/bill"
-                ).hasAnyRole("DIRECTOR", "ACCOUNTS")
+                        HttpMethod.GET,
+                        "/api/vouchers/*/bill")
+                        .hasAnyRole("DIRECTOR", "ACCOUNTS")
 
-                // All other voucher endpoints remain Employee-only
-                .requestMatchers("/api/vouchers/**").hasRole("EMPLOYEE")
+                .requestMatchers("/api/vouchers/**")
+                        .hasRole("EMPLOYEE")
 
-                // All remaining endpoints require authentication
                 .anyRequest().authenticated()
             )
 
             .addFilterBefore(
-                jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class
+                    jwtAuthenticationFilter,
+                    UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
