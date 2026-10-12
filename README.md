@@ -227,21 +227,152 @@ The relationships above describe the column references shown in the database. Ve
 
 **Base URL:** `http://localhost:8080`
 
-The backend exposes REST APIs for authentication, voucher management, approval operations, and other implemented features.
+The application exposes REST APIs for authentication, password recovery, expense voucher management, Director approval, Accounts access, and profile management.
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/auth/login` | Authenticate a user, according to the implemented controller mapping. |
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| POST | `/api/auth/login` | Authenticate and obtain a JWT | Public |
+| POST | `/api/auth/forgot-password` | Request a password-reset OTP | Public |
+| POST | `/api/auth/reset-password` | Reset a password using an OTP | Public |
 
-### Authorization
+**Login request:**
 
-Protected endpoints use JWT authentication where configured.
+```json
+{
+  "username": "employee_username",
+  "password": "your_password"
+}
+```
+
+The login response includes the user ID, JWT token, username, role, and message.
+
+### Voucher Management
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| POST | `/api/vouchers/draft/{employeeId}` | Create a voucher draft | EMPLOYEE |
+| GET | `/api/vouchers/employee/{employeeId}` | List an employee's vouchers | EMPLOYEE |
+| GET | `/api/vouchers/employee/{employeeId}/{voucherId}` | Retrieve a voucher | EMPLOYEE |
+| PUT | `/api/vouchers/draft/{employeeId}/{voucherId}` | Update a draft | EMPLOYEE |
+| DELETE | `/api/vouchers/draft/{employeeId}/{voucherId}` | Delete a draft | EMPLOYEE |
+| POST | `/api/vouchers/upload-bill` | Upload a bill or receipt | EMPLOYEE |
+| POST | `/api/vouchers/submit/{employeeId}/{voucherId}` | Submit a voucher for approval | EMPLOYEE |
+
+The bill-upload endpoint accepts `multipart/form-data` with a field named `file`. The controller enforces a 5 MB size limit and allows PDF, JPG, JPEG, and PNG file types.
+
+The submit endpoint accepts JSON containing the employee signature path:
+
+```json
+{
+  "employeeSignaturePath": "path_returned_by_upload"
+}
+```
+
+### Director Operations
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/director/pending` | List pending vouchers | DIRECTOR |
+| GET | `/api/director/processed` | List approved and rejected vouchers | DIRECTOR |
+| POST | `/api/director/approve/{directorId}/{voucherId}` | Approve a voucher | DIRECTOR |
+| POST | `/api/director/reject/{directorId}/{voucherId}` | Reject a voucher | DIRECTOR |
+
+**Approval request:**
+
+```json
+{
+  "directorSignaturePath": "signature_file_path"
+}
+```
+
+**Rejection request:**
+
+```json
+{
+  "rejectionReason": "Reason for rejection"
+}
+```
+
+### Accounts Operations
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/accounts/vouchers` | Retrieve all vouchers | ACCOUNTS |
+| GET | `/api/accounts/vouchers/approved` | Retrieve approved vouchers | ACCOUNTS |
+
+### Bill File Access
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/vouchers/{voucherId}/bill` | View an uploaded bill | DIRECTOR or ACCOUNTS |
+
+Accounts users can view bills only for approved vouchers, according to the controller implementation.
+
+### Profile Management
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/profile/me` | Retrieve the authenticated user's profile | Authenticated |
+| PUT | `/api/profile/me` | Update the authenticated user's profile | Authenticated |
+| POST | `/api/profile/change-password` | Change the authenticated user's password | Authenticated |
+
+**Profile update request:**
+
+```json
+{
+  "fullName": "Employee Name",
+  "email": "employee@example.com",
+  "department": "IT",
+  "employeeCode": "EMP001"
+}
+```
+
+**Change-password request:**
+
+```json
+{
+  "currentPassword": "current_password",
+  "newPassword": "new_password"
+}
+```
+
+The new password must contain between 8 and 100 characters according to the request DTO.
+
+### Authentication Header
+
+Protected endpoints use JWT authentication. Include the token in the HTTP request header:
 
 ```http
 Authorization: Bearer YOUR_JWT_TOKEN
 ```
+
+In Postman, select **Authorization → Bearer Token** and enter the token returned by the login endpoint.
+
+### Common HTTP Status Codes
+
+| Status | Meaning |
+|---|---|
+| 200 OK | Request completed successfully |
+| 201 Created | Resource created or file uploaded |
+| 204 No Content | Draft deleted successfully |
+| 400 Bad Request | Invalid request or validation failure |
+| 401 Unauthorized | Authentication required or credentials invalid |
+| 403 Forbidden | Access denied |
+| 404 Not Found | Resource or bill file not found |
+| 500 Internal Server Error | Unexpected server or configuration error |
+
+Actual responses depend on the endpoint, validation rules, service implementation, and exception handling.
+
+### Implementation Notes
+
+- The login, forgot-password, and reset-password endpoints are configured as public routes.
+- Voucher routes require the EMPLOYEE role, except the bill-view route, which has separate Director and Accounts authorization.
+- Director and Accounts routes are restricted to their respective roles.
+- Profile routes require authentication.
+- Service-layer ownership checks should ensure that employee and Director IDs in URL parameters match the authenticated user's permissions.
+
 
 ### Testing with Postman
 
