@@ -1,86 +1,94 @@
 # Expense Voucher Management System
 
-A web-based application developed to streamline expense voucher submission, approval, and tracking for Prachay Securities Private Limited.
+A full-stack web application for creating, submitting, reviewing, approving, and tracking employee expense vouchers. The application provides role-based workflows for **Employees**, **Directors**, and the **Accounts Team**, replacing manual voucher paperwork with a centralized digital process.
 
-## About the Project
+## Demo
 
-The Expense Voucher Management System digitizes the expense management workflow by providing employee voucher operations, Director approval, role-based access control, and voucher status tracking.
-
-**Technology Stack:** React.js, Spring Boot, Java 17, MySQL, Gradle, Spring Security, JWT, and BCrypt.
+[Watch the project demonstration](https://drive.google.com/file/d/1KqeYuYbBTtlYvsCqQHjQLEQ_Tgao7_NF/view?usp=sharing)
 
 ## Features
 
-- User authentication and JWT-based security.
-- Role-based access for Employees, Directors, and Accounts.
-- Expense voucher creation and management.
-- Director approval and rejection workflow.
-- Voucher status tracking.
-- Password reset using OTP records.
-- Email configuration for application notifications and password-reset functionality.
-- MySQL database integration.
+### Employee
+- Sign in securely.
+- Create, edit, and delete draft expense vouchers.
+- Attach supporting bills or receipts.
+- Submit vouchers for director review.
+- View previously created vouchers and their statuses.
+- Manage profile information and change password.
 
-## User Roles
+### Director
+- View vouchers pending review.
+- Approve or reject submitted vouchers.
+- Provide a rejection reason when rejecting a voucher.
+- View previously processed vouchers.
 
-| Role | Responsibility |
-|---|---|
-| EMPLOYEE | Manage expense vouchers and track their status. |
-| DIRECTOR | Review, approve, or reject vouchers. |
-| ACCOUNTS | Access voucher information for accounting operations. |
+### Accounts Team
+- View vouchers for financial monitoring.
+- Access approved vouchers.
+- Review supporting bill attachments where authorized.
 
-## Voucher Workflow
-
-`DRAFT → PENDING_APPROVAL → APPROVED / REJECTED`
-
-The available status transitions are governed by the application's implemented business rules.
+### Authentication and Security
+- JWT-based authentication.
+- Spring Security role-based authorization.
+- BCrypt password hashing.
+- Password reset using an OTP workflow.
+- Protected REST API endpoints.
 
 ## Technology Stack
 
-| Component | Technology |
-|---|---|
-| Frontend | React.js, Vite, JavaScript |
-| Backend | Java 17, Spring Boot |
-| Database | MySQL |
-| Build Tool | Gradle |
-| Authentication | Spring Security, JWT |
-| Password Security | BCrypt |
-| Email Configuration | SMTP credentials through environment variables |
-| API Testing | Postman |
-| Version Control | Git and GitHub |
+| Layer | Technology |
+| --- | --- |
+| Frontend | React, JavaScript, Vite |
+| Backend | Java 17, Spring Boot, Spring Web MVC |
+| Security | Spring Security, JWT, BCrypt |
+| Persistence | Spring Data JPA, Hibernate |
+| Database | MySQL 8 |
+| Build tool | Gradle |
+| API testing | Postman |
+| Version control | Git and GitHub |
+
+## Roles and Workflow
+
+1. An **Employee** logs in and creates an expense voucher as a draft.
+2. The employee adds expense details and uploads a supporting bill, if applicable.
+3. The employee submits the voucher for approval.
+4. A **Director** reviews the submitted voucher and approves or rejects it.
+5. The **Accounts Team** can view vouchers, including approved claims, for financial tracking.
+
+The exact status values and transition rules are defined by the backend implementation and database schema.
 
 ## Project Structure
 
 ```text
 expense-voucher-management/
-├── expense-voucher-frontend/
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.js
-├── src/
-│   └── main/
-│       ├── java/
-│       └── resources/
-├── gradle/
-├── build.gradle
+├── frontend/                 # React application
+├── src/                      # Spring Boot application source
+│   ├── main/
+│   └── test/
+├── database/
+│   └── schema.sql            # Exported MySQL database schema
+├── uploads/                  # Runtime bill uploads (do not commit receipts)
+├── .env.example              # Example environment configuration
+├── build.gradle              # Gradle build configuration
 ├── settings.gradle
 ├── gradlew
 ├── gradlew.bat
-├── .gitignore
-├── .env.example
-├── database/
-│   └── schema.sql
 └── README.md
 ```
 
-The database directory and its schema file should be added if they do not already exist.
+> The directory tree is an overview. Consult the repository for exact Java package names, frontend folders, and any additional configuration files.
 
 ## Prerequisites
 
-- JDK 17
-- Node.js and npm
-- MySQL Server and MySQL Workbench
-- Git
+Install the following before running the project:
 
-## Project Setup
+- **Java JDK 17**
+- **Node.js** and **npm**
+- **MySQL Server 8**
+- **Git**
+- An IDE such as IntelliJ IDEA, VS Code, or Spring Tool Suite
+
+## Local Setup
 
 ### 1. Clone the repository
 
@@ -89,34 +97,39 @@ git clone https://github.com/virajkhanvilkar/expense-voucher-management.git
 cd expense-voucher-management
 ```
 
-### 2. Create the database
+### 2. Create the MySQL database
 
-Execute the following query in MySQL Workbench:
+Log in to MySQL and create the application database:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS expense_voucher_db;
 ```
 
-### 3. Configure environment variables
+The exported database structure is available at [`database/schema.sql`](database/schema.sql).
 
-Configure the required variables in your IDE's run configuration or your local runtime environment.
+To import it from the project root:
 
-See `.env.example` for the required configuration names. Spring Boot does not automatically load `.env` files without additional configuration.
+```bash
+mysql -u root -p expense_voucher_db < database/schema.sql
+```
 
-Required settings include:
+**Note:** `schema.sql` is a schema-only export. It does not include user accounts or application records. If the application is configured with Hibernate `ddl-auto=update`, Hibernate may also create or update tables during startup; avoid mixing approaches without checking the resulting schema.
 
-- `DB_URL`
-- `DB_USERNAME`
-- `DB_PASSWORD`
-- `JWT_SECRET`
-- `MAIL_USERNAME`
-- `MAIL_APP_PASSWORD`
+### 3. Configure backend settings
 
-Use the exact property names expected by the application's configuration classes.
+Use [`.env.example`](.env.example) as a reference for the settings your local installation requires. **Do not commit real passwords, signing secrets, or OTP/email credentials.**
 
-### 4. Run the backend
+Spring Boot settings may be supplied through environment variables or your local `application.properties` / `application.yml` configuration. For example:
 
-From the project root, execute:
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/expense_voucher_db
+spring.datasource.username=root
+spring.datasource.password=${DB_PASSWORD}
+```
+
+Set any additional JWT, email/OTP, upload directory, and CORS settings required by the application's configuration. The variable names must match the actual placeholders used in the source code; merely creating a `.env` file does not make Spring Boot load it automatically.
+
+### 4. Start the Spring Boot backend
 
 **Windows:**
 
@@ -124,315 +137,183 @@ From the project root, execute:
 gradlew.bat bootRun
 ```
 
-**Linux/macOS:**
+**macOS / Linux:**
 
 ```bash
 ./gradlew bootRun
 ```
 
-Backend URL: `http://localhost:8080`
+The backend is expected to be available at `http://localhost:8080` when configured to use port 8080.
 
-### 5. Run the frontend
+### 5. Start the React frontend
 
 Open another terminal:
 
 ```bash
-cd expense-voucher-frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-Open the local URL displayed by Vite, typically `http://localhost:5173`.
+Open the local address printed by Vite (commonly `http://localhost:5173`). Configure the frontend API base URL to point to the backend as required by the source code.
 
 ## Database Schema
 
-Database name: `expense_voucher_db`
+The database contains these core tables:
 
-The application uses MySQL tables managed through JPA entities and Hibernate configuration.
+| Table | Purpose |
+| --- | --- |
+| `users` | User profiles, credentials, departments, and roles |
+| `vouchers` | Employee expense vouchers, amounts, dates, descriptions, and statuses |
+| `voucher_approvals` | Director decisions and approval/rejection records |
+| `password_reset_otps` | OTP data used by the password reset flow |
 
-### 1. `users`
+The authoritative table definitions, column types, indexes, and constraints are in [`database/schema.sql`](database/schema.sql).
 
-Stores user accounts and role information.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT | Primary key, auto-increment |
-| `created_at` | DATETIME(6) | Account creation timestamp |
-| `department` | VARCHAR(100) | Department name |
-| `employee_code` | VARCHAR(50) | Employee identifier, nullable |
-| `full_name` | VARCHAR(100) | User's full name |
-| `password_hash` | VARCHAR(255) | Hashed password |
-| `role` | ENUM | ACCOUNTS, DIRECTOR, EMPLOYEE |
-| `username` | VARCHAR(100) | Unique username |
-| `email` | VARCHAR(254) | Unique email, nullable |
-
-### 2. `vouchers`
-
-Stores expense voucher details and workflow status.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT | Primary key, auto-increment |
-| `amount` | DECIMAL(12,2) | Claimed expense amount |
-| `created_at` | DATETIME(6) | Creation timestamp |
-| `department_name` | VARCHAR(100) | Department associated with the voucher |
-| `employee_signature_path` | VARCHAR(500) | Employee signature path, nullable |
-| `expense_category` | VARCHAR(100) | Expense category |
-| `expense_date` | DATE | Date of expense |
-| `expense_description` | VARCHAR(2000) | Expense details, nullable |
-| `expense_title` | VARCHAR(150) | Voucher title |
-| `status` | ENUM | Current voucher status |
-| `updated_at` | DATETIME(6) | Last update timestamp |
-| `voucher_date` | DATE | Voucher date |
-| `voucher_number` | VARCHAR(30) | Unique voucher number, nullable |
-| `employee_id` | BIGINT | Employee reference |
-| `bill_photo` | VARCHAR(500) | Bill or receipt path, nullable |
-
-### 3. `voucher_approvals`
-
-Stores Director decisions and approval-related information.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT | Primary key, auto-increment |
-| `decision_date` | DATETIME(6) | Decision timestamp |
-| `director_signature_path` | VARCHAR(500) | Director signature path, nullable |
-| `rejection_reason` | VARCHAR(1000) | Rejection explanation, nullable |
-| `director_id` | BIGINT | Director reference |
-| `voucher_id` | BIGINT | Unique voucher reference |
-
-### 4. `password_reset_otps`
-
-Stores OTP records associated with password reset operations.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT | Primary key, auto-increment |
-| `attempts` | INT | Number of verification attempts |
-| `created_at` | DATETIME(6) | Record creation timestamp |
-| `email` | VARCHAR(254) | Email associated with the reset request |
-| `expires_at` | DATETIME(6) | OTP expiration timestamp |
-| `otp_hash` | VARCHAR(64) | Hashed OTP value |
-
-### Relationships
-
-- A user can be associated with multiple vouchers through `vouchers.employee_id`.
-- A Director is referenced by `voucher_approvals.director_id`.
-- Each voucher has a unique voucher reference in `voucher_approvals.voucher_id`.
-- Password reset OTP records are associated with an email address.
-
-The relationships above describe the column references shown in the database. Verify the actual foreign-key constraints and cardinalities against the database DDL before using this documentation as a formal schema specification.
-
-## API Documentation
+## REST API Documentation
 
 **Base URL:** `http://localhost:8080`
 
-The application exposes REST APIs for authentication, password recovery, expense voucher management, Director approval, Accounts access, and profile management.
+Endpoints that require authentication should be called with a JWT:
+
+```http
+Authorization: Bearer <your-jwt-token>
+```
 
 ### Authentication
 
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| POST | `/api/auth/login` | Authenticate and obtain a JWT | Public |
-| POST | `/api/auth/forgot-password` | Request a password-reset OTP | Public |
-| POST | `/api/auth/reset-password` | Reset a password using an OTP | Public |
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| POST | `/api/auth/login` | Authenticate a user |
+| POST | `/api/auth/forgot-password` | Initiate password recovery |
+| POST | `/api/auth/reset-password` | Reset password using the recovery flow |
 
-**Login request:**
-
-```json
-{
-  "username": "employee_username",
-  "password": "your_password"
-}
-```
-
-The login response includes the user ID, JWT token, username, role, and message.
-
-### Voucher Management
-
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| POST | `/api/vouchers/draft/{employeeId}` | Create a voucher draft | EMPLOYEE |
-| GET | `/api/vouchers/employee/{employeeId}` | List an employee's vouchers | EMPLOYEE |
-| GET | `/api/vouchers/employee/{employeeId}/{voucherId}` | Retrieve a voucher | EMPLOYEE |
-| PUT | `/api/vouchers/draft/{employeeId}/{voucherId}` | Update a draft | EMPLOYEE |
-| DELETE | `/api/vouchers/draft/{employeeId}/{voucherId}` | Delete a draft | EMPLOYEE |
-| POST | `/api/vouchers/upload-bill` | Upload a bill or receipt | EMPLOYEE |
-| POST | `/api/vouchers/submit/{employeeId}/{voucherId}` | Submit a voucher for approval | EMPLOYEE |
-
-The bill-upload endpoint accepts `multipart/form-data` with a field named `file`. The controller enforces a 5 MB size limit and allows PDF, JPG, JPEG, and PNG file types.
-
-The submit endpoint accepts JSON containing the employee signature path:
+**Login request example:**
 
 ```json
 {
-  "employeeSignaturePath": "path_returned_by_upload"
+  "username": "employee1",
+  "password": "your-password"
 }
 ```
 
-### Director Operations
+Use the token returned by the login endpoint in subsequent authenticated requests.
 
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| GET | `/api/director/pending` | List pending vouchers | DIRECTOR |
-| GET | `/api/director/processed` | List approved and rejected vouchers | DIRECTOR |
-| POST | `/api/director/approve/{directorId}/{voucherId}` | Approve a voucher | DIRECTOR |
-| POST | `/api/director/reject/{directorId}/{voucherId}` | Reject a voucher | DIRECTOR |
+### Employee Voucher Management
 
-**Approval request:**
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| POST | `/api/vouchers/draft/{employeeId}` | Create a draft voucher |
+| GET | `/api/vouchers/employee/{employeeId}` | List an employee's vouchers |
+| GET | `/api/vouchers/employee/{employeeId}/{voucherId}` | View a specific employee voucher |
+| PUT | `/api/vouchers/draft/{employeeId}/{voucherId}` | Update a draft voucher |
+| DELETE | `/api/vouchers/draft/{employeeId}/{voucherId}` | Delete a draft voucher |
+| POST | `/api/vouchers/upload-bill` | Upload a supporting bill |
+| POST | `/api/vouchers/submit/{employeeId}/{voucherId}` | Submit a draft for approval |
+
+For bill uploads, send a `multipart/form-data` request with the file under the `file` field. Supported file formats and size limits are controlled by the backend validation rules.
+
+### Director Review
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/director/pending` | List pending vouchers |
+| GET | `/api/director/processed` | List processed vouchers |
+| POST | `/api/director/approve/{directorId}/{voucherId}` | Approve a voucher |
+| POST | `/api/director/reject/{directorId}/{voucherId}` | Reject a voucher |
+
+The approval and rejection endpoints may require additional request-body fields, such as a signature path or rejection reason, according to their controller DTOs.
+
+### Accounts
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/accounts/vouchers` | View vouchers |
+| GET | `/api/accounts/vouchers/approved` | View approved vouchers |
+
+### Bill Access
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/vouchers/{voucherId}/bill` | Retrieve a voucher's bill attachment |
+
+### User Profile
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/api/profile/me` | View current user's profile |
+| PUT | `/api/profile/me` | Update current user's profile |
+| POST | `/api/profile/change-password` | Change current user's password |
+
+**Change-password request example:**
 
 ```json
 {
-  "directorSignaturePath": "signature_file_path"
+  "currentPassword": "old-password",
+  "newPassword": "new-secure-password"
 }
 ```
 
-**Rejection request:**
+> **API note:** These routes summarize the project endpoints documented during development. Confirm exact request fields, validation constraints, response shapes, and HTTP status codes against the current controller/DTO implementations before submitting or integrating an external client.
 
-```json
-{
-  "rejectionReason": "Reason for rejection"
-}
+## Testing with Postman
+
+1. Run the Spring Boot application and ensure MySQL is available.
+2. Call `POST /api/auth/login` with valid credentials.
+3. Copy the JWT from the login response.
+4. For protected endpoints, choose **Authorization → Bearer Token** in Postman and paste the JWT.
+5. Test the employee, director, and accounts endpoints using accounts with the appropriate roles.
+6. Test error cases such as invalid credentials, unauthorized roles, invalid voucher IDs, and rejected uploads.
+
+## Security Considerations
+
+- Passwords should be stored only as BCrypt hashes.
+- JWT signing keys and database credentials must remain outside version control.
+- Backend authorization must enforce role restrictions independently of frontend route protection.
+- Voucher access should verify that the authenticated employee owns the requested resource; a URL `employeeId` alone is not proof of ownership.
+- Uploaded bills can contain sensitive personal or financial information. Keep them out of the public repository and restrict file access to authorized users.
+- OTPs should have expiration and abuse protections according to the implemented recovery flow.
+
+## Environment and Git Hygiene
+
+- Use [`.env.example`](.env.example) to document non-secret configuration requirements.
+- Keep local `.env` files, real secrets, build output, and uploaded receipts out of Git.
+- Review `.gitignore` before committing new files.
+- Do not commit actual employee financial records or personal documents.
+
+Suggested ignore entries, if they are not already present:
+
+```gitignore
+.env
+.env.local
+uploads/bills/
+frontend/node_modules/
+frontend/dist/
+.gradle/
+build/
 ```
 
-### Accounts Operations
+## Assumptions and Limitations
 
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| GET | `/api/accounts/vouchers` | Retrieve all vouchers | ACCOUNTS |
-| GET | `/api/accounts/vouchers/approved` | Retrieve approved vouchers | ACCOUNTS |
+- The system supports three primary roles: **EMPLOYEE**, **DIRECTOR**, and **ACCOUNTS**.
+- A voucher is prepared by an employee and then reviewed by a director.
+- The accounts workflow is focused on viewing and monitoring vouchers.
+- The schema export contains table definitions, not production data or sample users.
+- Deployment configuration, seeded accounts, email delivery, and any optional AI features depend on what has actually been implemented and configured in the repository.
 
-### Bill File Access
+## Future Enhancements
 
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| GET | `/api/vouchers/{voucherId}/bill` | View an uploaded bill | DIRECTOR or ACCOUNTS |
+- AI-assisted voucher drafting from natural-language descriptions.
+- Receipt data extraction and validation.
+- Advanced reports, filters, and export functionality.
+- Audit logs and notifications for voucher status changes.
+- Deployment with managed database and secure file storage.
 
-Accounts users can view bills only for approved vouchers, according to the controller implementation.
+## Repository
 
-### Profile Management
-
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| GET | `/api/profile/me` | Retrieve the authenticated user's profile | Authenticated |
-| PUT | `/api/profile/me` | Update the authenticated user's profile | Authenticated |
-| POST | `/api/profile/change-password` | Change the authenticated user's password | Authenticated |
-
-**Profile update request:**
-
-```json
-{
-  "fullName": "Employee Name",
-  "email": "employee@example.com",
-  "department": "IT",
-  "employeeCode": "EMP001"
-}
-```
-
-**Change-password request:**
-
-```json
-{
-  "currentPassword": "current_password",
-  "newPassword": "new_password"
-}
-```
-
-The new password must contain between 8 and 100 characters according to the request DTO.
-
-### Authentication Header
-
-Protected endpoints use JWT authentication. Include the token in the HTTP request header:
-
-```http
-Authorization: Bearer YOUR_JWT_TOKEN
-```
-
-In Postman, select **Authorization → Bearer Token** and enter the token returned by the login endpoint.
-
-### Common HTTP Status Codes
-
-| Status | Meaning |
-|---|---|
-| 200 OK | Request completed successfully |
-| 201 Created | Resource created or file uploaded |
-| 204 No Content | Draft deleted successfully |
-| 400 Bad Request | Invalid request or validation failure |
-| 401 Unauthorized | Authentication required or credentials invalid |
-| 403 Forbidden | Access denied |
-| 404 Not Found | Resource or bill file not found |
-| 500 Internal Server Error | Unexpected server or configuration error |
-
-Actual responses depend on the endpoint, validation rules, service implementation, and exception handling.
-
-### Implementation Notes
-
-- The login, forgot-password, and reset-password endpoints are configured as public routes.
-- Voucher routes require the EMPLOYEE role, except the bill-view route, which has separate Director and Accounts authorization.
-- Director and Accounts routes are restricted to their respective roles.
-- Profile routes require authentication.
-- Service-layer ownership checks should ensure that employee and Director IDs in URL parameters match the authenticated user's permissions.
-
-
-### Testing with Postman
-
-1. Start the Spring Boot backend.
-2. Send a login request with valid credentials.
-3. Copy the token returned by the API.
-4. Select **Authorization → Bearer Token** in Postman.
-5. Test protected endpoints and verify role-based access.
-
-Document the exact endpoint mappings, request fields, response formats, and HTTP status codes from the implemented Spring Boot controllers and DTOs before submission. Do not assume that an endpoint exists merely because its functionality is described in the README.
-
-## Assumptions and Development Decisions
-
-- The system supports three roles: EMPLOYEE, DIRECTOR, and ACCOUNTS.
-- Voucher operations depend on the authenticated user's permissions.
-- Director approval is part of the expense voucher workflow.
-- Passwords are stored as hashes rather than plaintext.
-- OTP records include an expiry time and an attempt counter.
-- MySQL is used for persistent application data.
-- JPA and Hibernate are used for database persistence.
-- Database and email credentials are supplied through runtime configuration.
-- Supporting documents and signatures are represented by file paths in the voucher-related tables.
-- The application is intended for development and demonstration; production deployment requires appropriate security, configuration, and data-protection controls.
-
-## Demo Video
-
-Watch the recorded demonstration of the working application:
-
-[**Expense Voucher Management System — Demo Video**](https://drive.google.com/file/d/1KqeYuYbBTtlYvsCqQHjQLEQ_Tgao7_NF/view?usp=sharing)
-
-The video demonstrates the working application. Access depends on the Google Drive sharing permissions.
-
-## Security
-
-- Use BCrypt for password hashing.
-- Keep JWT secrets, email app passwords, and database credentials private.
-- Enforce authorization on the backend.
-- Validate user inputs and protect restricted endpoints.
-- Limit access to financial records, uploaded bills, and signatures.
-- Avoid committing production credentials or sensitive user data.
-
-## Version Control
-
-```bash
-git status
-git add README.md .env.example database/
-git commit -m "Update project documentation and database schema"
-git push origin main
-```
-
-Adjust the Git commands if your schema file is stored elsewhere or your active branch differs.
+[GitHub — Expense Voucher Management System](https://github.com/virajkhanvilkar/expense-voucher-management)
 
 ## Author
 
-**Viraj Khanvilkar**
-
-GitHub: https://github.com/virajkhanvilkar
-
-Repository: https://github.com/virajkhanvilkar/expense-voucher-management
-
-## License
-
-This project is intended for internship and organizational use. Distribution or open-source licensing should be authorized by the organization before publication.
+**Viraj Rajesh Khanvilkar**  
+[GitHub](https://github.com/virajkhanvilkar) · [LinkedIn](https://www.linkedin.com/in/viraj-khanvilkar-42b63a338)
